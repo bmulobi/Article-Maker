@@ -1,0 +1,16 @@
+# edit below fields
+appname: ArticleMaker
+
+server:
+  appurl: localhost
+  port: 8000
+
+database:
+  dbdriver: mysql
+  dbhost: localhost
+  dbport: 3306
+  dbname: testdb
+  dbuser: user
+  dbpassword: password
+
+environment: development

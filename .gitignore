@@ -24,3 +24,13 @@ _testmain.go
 
 # IDE
 .idea/
+
+# fresh
+tmp
+go-rest-api-template.log
+
+# hot reloading
+runner.conf
+
+# local config
+config.yml

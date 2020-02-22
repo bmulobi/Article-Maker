@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"articlemaker/server"
+	"github.com/spf13/viper"
+)
 
-func main()  {
-	fmt.Println("Article Maker API")
+func main() {
+	app := &server.Server{
+		Host: viper.GetString("server.appurl"),
+		Port: viper.GetString("server.port"),
+	}
+
+	app.Start()
 }

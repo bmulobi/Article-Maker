@@ -12,7 +12,6 @@ import (
 )
 // uncomment driver import based on your needs
 
-
 type databaseConfigurations struct {
 	dbdriver string
 	dbname string
@@ -28,10 +27,11 @@ func SetUpDb() {
 	defer db.Close()
 
 	db.AutoMigrate(&models.Publisher{}, &models.Category{}, &models.Article{})
-	//db.Model(&models.Article{}).AddForeignKey("publisher_id", "publishers(id)", "ALLOW", "RESTRICT")
-	//db.Model(&models.Article{}).AddForeignKey("category_id", "categories(id)", "RESTRICT", "RESTRICT")
+	db.Model(&models.Article{}).AddForeignKey("publisher_id", "publishers(id)", "RESTRICT", "RESTRICT")
+	db.Model(&models.Article{}).AddForeignKey("category_id", "categories(id)", "RESTRICT", "RESTRICT")
 }
 
+// GetConnection get database connection
 func GetConnection() *gorm.DB {
 	dsn := getDataSourceName()
 	db, err := gorm.Open(viper.GetString("database.dbdriver"), dsn)
@@ -43,6 +43,7 @@ func GetConnection() *gorm.DB {
 	return db
 }
 
+// getDataSourceName get the database type
 func getDataSourceName() (dsn string) {
 	configs := getDbConfigurations()
 
@@ -69,6 +70,7 @@ func getDataSourceName() (dsn string) {
 	return dsn
 }
 
+// getDbConfigurations get the database configurations from environment
 func getDbConfigurations() (configs databaseConfigurations) {
 	configs.dbdriver = viper.GetString("database.dbdriver")
 	configs.dbname = viper.GetString("database.dbname")

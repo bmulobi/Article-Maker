@@ -1,4 +1,4 @@
-# Article MAker
+# Article Maker
 
 ## How to run the application
 

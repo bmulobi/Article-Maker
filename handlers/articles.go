@@ -47,7 +47,7 @@ func GetArticle(w http.ResponseWriter, r *http.Request) {
 
 	var result interface{}
 	if article.Id == 0 {
-		result =  map[string]string{"message": "Article was not found"}
+		result = map[string]string{"message": "Article was not found"}
 		w.WriteHeader(http.StatusNotFound)
 	} else {
 		result = article
@@ -138,7 +138,7 @@ func UpdateArticle(w http.ResponseWriter, r *http.Request) {
 
 	if article.Id == 0 {
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(fmt.Sprintf("The article with ID %s was not found", fieldsToUpdate["id"]))
+		json.NewEncoder(w).Encode(fmt.Sprintf("The article with ID %s was not found", strconv.Itoa(int(id))))
 		return
 	}
 	_, relations, columns := helpers.GetAllowedParams()
@@ -191,7 +191,7 @@ func UpdateArticle(w http.ResponseWriter, r *http.Request) {
 // DeleteArticle deletes an article from the database given the id
 func DeleteArticle(w http.ResponseWriter, r *http.Request) {
 	tokens := strings.Split(r.URL.String(), "/")
-	id := tokens[len(tokens) - 1]
+	id := tokens[len(tokens)-1]
 	db := store.GetConnection()
 	defer db.Close()
 	db.Delete(models.Article{}, fmt.Sprintf("id = %s", id))
@@ -200,7 +200,7 @@ func DeleteArticle(w http.ResponseWriter, r *http.Request) {
 }
 
 // NotFound returns a 404 error message for any unknown path
-func NotFound(w http.ResponseWriter, r *http.Request){
+func NotFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 	json.NewEncoder(w).Encode("Page Not Found")
 }

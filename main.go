@@ -5,6 +5,7 @@ import (
 	"articlemaker/server"
 	"fmt"
 	"github.com/spf13/viper"
+	"log"
 	"os"
 )
 
@@ -18,5 +19,6 @@ func main() {
 		Port: viper.GetString(fmt.Sprintf("server.%s.port", env)),
 	}
 
+	log.Println("STARTING THE SERVER")
 	app.Start()
 }

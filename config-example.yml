@@ -5,6 +5,9 @@ server:
   development:
     appurl: localhost
     port: 8000
+  testing:
+    appurl: localhost
+    port: 8000
 database:
   development:
     dbdriver: mysql
@@ -14,5 +17,9 @@ database:
     dbuser: username
     dbpassword: password
   testing:
-    dbname: testdb
-    dbdriver: sqlite
+    dbdriver: mysql
+    dbhost: localhost
+    dbport: 3306
+    dbname: articletestdb
+    dbuser: username
+    dbpassword: password

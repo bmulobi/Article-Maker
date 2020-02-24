@@ -6,22 +6,23 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/spf13/viper"
 	"os"
+	// _ "github.com/jinzhu/gorm/dialects/sqlite"
 	// import _ "github.com/jinzhu/gorm/dialects/postgres"
 	// import _ "github.com/jinzhu/gorm/dialects/mssql"
 )
+
 // uncomment driver import based on your needs
 
 type databaseConfigurations struct {
-	dbdriver string
-	dbname string
-	dbuser string
+	dbdriver   string
+	dbname     string
+	dbuser     string
 	dbpassword string
-	dbhost string
-	dbport string
-	env string
+	dbhost     string
+	dbport     string
+	env        string
 }
 
 // SetUpDb creates the schema tables, gorm guarantees the initial migrations run only once
@@ -65,7 +66,7 @@ func getDataSourceName() (dsn string) {
 	case "mssql":
 		dsn = fmt.Sprintf(
 			"sqlserver://%s:%s@%s:%s?database=%s",
-			configs.dbuser, configs.dbpassword, configs.dbhost, configs.dbport,configs. dbname,
+			configs.dbuser, configs.dbpassword, configs.dbhost, configs.dbport, configs.dbname,
 		)
 	case "sqlite":
 		dsn = fmt.Sprintf("/tmp/%s.db", configs.dbname)

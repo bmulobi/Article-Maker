@@ -48,10 +48,10 @@ func TestGetArticles(t *testing.T) {
 
 	_ = CreateArticle(t, map[string]string{})
 	articleTwo := map[string]string{
-		"categoryName": "test category two",
+		"categoryName":  "test category two",
 		"publisherName": "test publisher two",
-		"articleTitle": "test article two",
-		"articleBody": "test article two body",
+		"articleTitle":  "test article two",
+		"articleBody":   "test article two body",
 	}
 	_ = CreateArticle(t, articleTwo)
 
@@ -92,7 +92,7 @@ func TestDeleteArticle(t *testing.T) {
 	defer TearDown()
 	_ = CreateArticle(t, map[string]string{})
 	_ = DeleteArticle(t)
-	response := GetArticle(t,1)
+	response := GetArticle(t, 1)
 
 	if status := response.Code; status != http.StatusNotFound {
 		t.Errorf("handler returned wrong status code: got %v want %v",

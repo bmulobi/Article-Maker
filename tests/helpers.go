@@ -13,22 +13,22 @@ import (
 
 // UpdateData defines data to update an article
 type UpdateData struct {
-	Id int `json:"id"`
-	Title string `json:"title"`
-	Body string `json:"body"`
-	Publisher string `json:"publisher"`
-	Category string `json:"category"`
+	Id          int    `json:"id"`
+	Title       string `json:"title"`
+	Body        string `json:"body"`
+	Publisher   string `json:"publisher"`
+	Category    string `json:"category"`
 	PublishedAt string `json:"published_at"`
 }
 
 // GetArticleForUpdate returns an article for update
 func GetArticleForUpdate() UpdateData {
 	data := UpdateData{
-		Id:        1,
-		Title:     "Updated title",
-		Body:      "Updated body",
-		Publisher: "Updated publisher",
-		Category:  "Updated category",
+		Id:          1,
+		Title:       "Updated title",
+		Body:        "Updated body",
+		Publisher:   "Updated publisher",
+		Category:    "Updated category",
 		PublishedAt: "2020-02-24 21:59:31",
 	}
 
@@ -36,13 +36,13 @@ func GetArticleForUpdate() UpdateData {
 }
 
 // GetArticleForUpdate returns an article to create
-func GetArticleForCreate(data map[string]string) models.Article  {
+func GetArticleForCreate(data map[string]string) models.Article {
 	categoryName := "test category one"
 	publisherName := "test publisher one"
 	articleTitle := "test article one"
 	articleBody := "test article one body"
 
-	if len(data) > 0  {
+	if len(data) > 0 {
 		categoryName = data["categoryName"]
 		publisherName = data["publisherName"]
 		articleTitle = data["articleTitle"]
@@ -55,10 +55,10 @@ func GetArticleForCreate(data map[string]string) models.Article  {
 		Name: publisherName,
 	}
 	article := models.Article{
-		Title:       articleTitle,
-		Body:        articleBody,
-		Publisher:   publisher,
-		Category:    category,
+		Title:     articleTitle,
+		Body:      articleBody,
+		Publisher: publisher,
+		Category:  category,
 	}
 
 	return article
@@ -81,7 +81,6 @@ func CreateArticle(t *testing.T, data map[string]string) (response *httptest.Res
 // UpdateArticle helper for the updating an article
 func UpdateArticle(t *testing.T) (response *httptest.ResponseRecorder) {
 	body, _ := json.Marshal(GetArticleForUpdate())
-
 
 	request, err := http.NewRequest("PUT", "/article", bytes.NewBuffer(body))
 	if err != nil {

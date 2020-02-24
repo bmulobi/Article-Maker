@@ -56,6 +56,7 @@ func GetArticle(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetArticles gets all articles from the database
+// can filter results by category publisher created_at published_at
 func GetArticles(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 	var articles []models.Article
@@ -64,7 +65,7 @@ func GetArticles(w http.ResponseWriter, r *http.Request) {
 
 	db = db.Preload("Category").Preload("Publisher")
 	if len(params) > 0 {
-		categoryId, publisherId, notFound := helpers.GetCategoryAndPublisherIds(r)
+		categoryId, publisherId, notFound := helpers.GetRelationsIds(r)
 
 		if notFound {
 			w.WriteHeader(http.StatusNotFound)
@@ -77,7 +78,7 @@ func GetArticles(w http.ResponseWriter, r *http.Request) {
 		if publisherId != 0 {
 			db = db.Where("publisher_id = ?", publisherId)
 		}
-		columns, relations := helpers.GetAllowedSearchParams()
+		columns, relations, _ := helpers.GetAllowedParams()
 
 		isColumn := false
 		isRelation := false
@@ -112,22 +113,75 @@ func GetArticles(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateArticle updates an article given the id
+// updates title, body, published_at, category, publisher fields
 func UpdateArticle(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
+	var fieldsToUpdate map[string]string
+	err := json.NewDecoder(r.Body).Decode(&fieldsToUpdate)
+
 	if err != nil {
-		w.WriteHeader(500)
-		json.NewEncoder(w).Encode("Internal server error")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode("Error processing the request")
 		return
 	}
+	if _, ok := fieldsToUpdate["id"]; !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode("Enter the article ID")
+		return
+	}
+	db := store.GetConnection()
+	defer db.Close()
 
-	// get only needed fields
-	// save to db (update)
-
-	// set status code 200
 	var article models.Article
-	json.Unmarshal(body, &article)
+	db.First(&article, fieldsToUpdate["id"])
+	if article.Id == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(fmt.Sprintf("The article with ID %s was not found", fieldsToUpdate["id"]))
+		return
+	}
+	_, relations, columns := helpers.GetAllowedParams()
+	updates := make(map[string]interface{})
 
-	// set status code
+	for field, value := range fieldsToUpdate {
+		if _, exists := columns[field]; exists {
+			switch {
+			case "Title" == helpers.FieldsMapper[field]:
+				updates["title"] = value
+			case "Body" == helpers.FieldsMapper[field]:
+				updates["body"] = value
+			case "PublishedAt" == helpers.FieldsMapper[field]:
+				newDate, err := helpers.GetTimeFromString(value)
+				if err {
+					w.WriteHeader(http.StatusInternalServerError)
+					json.NewEncoder(w).Encode("Enter parsing published_at")
+					return
+				}
+				updates["published_at"] = newDate
+			}
+		}
+		if _, exists := relations[field]; exists {
+			switch {
+			case "Category" == helpers.FieldsMapper[field]:
+				categoryId, _ := helpers.GetCategoryOrPublisherIdByName(value, "categories")
+				if categoryId == 0 {
+					var newCategory models.Category
+					db.Create(&models.Category{Name: value}).Scan(&newCategory)
+					updates["category_id"] = newCategory.Id
+				} else {
+					updates["category_id"] = categoryId
+				}
+			case "Publisher" == helpers.FieldsMapper[field]:
+				publisherId, _ := helpers.GetCategoryOrPublisherIdByName(value, "publishers")
+				if publisherId == 0 {
+					var newPublisher models.Publisher
+					db.Create(&models.Publisher{Name: value}).Scan(&newPublisher)
+					updates["publisher_id"] = newPublisher.Id
+				} else {
+					updates["publisher_id"] = publisherId
+				}
+			}
+		}
+	}
+	db.Model(&article).Updates(updates)
 	json.NewEncoder(w).Encode(article)
 }
 

@@ -1,3 +1,4 @@
+// Package models contains the definitions for the database schema
 package models
 
 import "time"

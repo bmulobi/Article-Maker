@@ -2,15 +2,17 @@
 appname: ArticleMaker
 
 server:
-  appurl: localhost
-  port: 8000
-
+  development:
+    appurl: localhost
+    port: 8000
 database:
-  dbdriver: mysql
-  dbhost: localhost
-  dbport: 3306
-  dbname: testdb
-  dbuser: user
-  dbpassword: password
-
-environment: development
+  development:
+    dbdriver: mysql
+    dbhost: localhost
+    dbport: 3306
+    dbname: articlemaker
+    dbuser: username
+    dbpassword: password
+  testing:
+    dbname: testdb
+    dbdriver: sqlite

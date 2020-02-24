@@ -1,3 +1,4 @@
+// Package helpers contains some useful functions for API actions
 package helpers
 
 import (
@@ -63,6 +64,7 @@ func GetRelationsIds(r *http.Request) (categoryId int, publisherId int, notFound
 	return categoryId, publisherId, notFound
 }
 
+// GetTimeFromString converts a string to a time.Time instance
 func GetTimeFromString(dateString string) (date time.Time, malformed bool) {
 	tokens := strings.Split(dateString, " ")
 
@@ -78,7 +80,7 @@ func GetTimeFromString(dateString string) (date time.Time, malformed bool) {
 	}
 
 	dateString = strings.Replace(dateString, " ", "T", 1)
-	dateString += "+03:00" // todo get the timezone diff
+	dateString += "+00:00" // todo get the timezone diff dynamically
 	newTime, err := time.Parse(time.RFC3339, dateString)
 
 	if err != nil {
@@ -88,6 +90,7 @@ func GetTimeFromString(dateString string) (date time.Time, malformed bool) {
 	return newTime, false
 }
 
+// GetCategoryOrPublisherIdByName gets category or publisher id given the name
 func GetCategoryOrPublisherIdByName(name string, table string) (id int, err error) {
 	db := store.GetConnection()
 	defer db.Close()

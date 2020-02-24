@@ -1,3 +1,4 @@
+// Package routes defines the routing for the API
 package routes
 
 import (
@@ -13,8 +14,8 @@ func HandleRequests() (router *mux.Router)  {
 	router = mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc(prefix + "/article", handlers.CreateArticle).Methods("POST")
+	router.HandleFunc(prefix + "/article", handlers.UpdateArticle).Methods("PUT")
 	router.HandleFunc(prefix + "/article", handlers.GetArticles)
-	router.HandleFunc(prefix + "/article/{id:[0-9]+}", handlers.UpdateArticle).Methods("PUT")
 	router.HandleFunc(prefix + "/article/{id:[0-9]+}", handlers.DeleteArticle).Methods("DELETE")
 	router.HandleFunc(prefix + "/article/{id:[0-9]+}", handlers.GetArticle)
 	router.HandleFunc(prefix + "/", handlers.NotFound)

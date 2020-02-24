@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -115,7 +116,7 @@ func GetArticles(w http.ResponseWriter, r *http.Request) {
 // UpdateArticle updates an article given the id
 // updates title, body, published_at, category, publisher fields
 func UpdateArticle(w http.ResponseWriter, r *http.Request) {
-	var fieldsToUpdate map[string]string
+	var fieldsToUpdate map[string]interface{}
 	err := json.NewDecoder(r.Body).Decode(&fieldsToUpdate)
 
 	if err != nil {
@@ -132,7 +133,9 @@ func UpdateArticle(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	var article models.Article
-	db.First(&article, fieldsToUpdate["id"])
+	id, _ := fieldsToUpdate["id"].(float64)
+	db.First(&article, strconv.Itoa(int(id)))
+
 	if article.Id == 0 {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(fmt.Sprintf("The article with ID %s was not found", fieldsToUpdate["id"]))
@@ -149,7 +152,7 @@ func UpdateArticle(w http.ResponseWriter, r *http.Request) {
 			case "Body" == helpers.FieldsMapper[field]:
 				updates["body"] = value
 			case "PublishedAt" == helpers.FieldsMapper[field]:
-				newDate, err := helpers.GetTimeFromString(value)
+				newDate, err := helpers.GetTimeFromString(value.(string))
 				if err {
 					w.WriteHeader(http.StatusInternalServerError)
 					json.NewEncoder(w).Encode("Enter parsing published_at")
@@ -161,19 +164,19 @@ func UpdateArticle(w http.ResponseWriter, r *http.Request) {
 		if _, exists := relations[field]; exists {
 			switch {
 			case "Category" == helpers.FieldsMapper[field]:
-				categoryId, _ := helpers.GetCategoryOrPublisherIdByName(value, "categories")
+				categoryId, _ := helpers.GetCategoryOrPublisherIdByName(value.(string), "categories")
 				if categoryId == 0 {
 					var newCategory models.Category
-					db.Create(&models.Category{Name: value}).Scan(&newCategory)
+					db.Create(&models.Category{Name: value.(string)}).Scan(&newCategory)
 					updates["category_id"] = newCategory.Id
 				} else {
 					updates["category_id"] = categoryId
 				}
 			case "Publisher" == helpers.FieldsMapper[field]:
-				publisherId, _ := helpers.GetCategoryOrPublisherIdByName(value, "publishers")
+				publisherId, _ := helpers.GetCategoryOrPublisherIdByName(value.(string), "publishers")
 				if publisherId == 0 {
 					var newPublisher models.Publisher
-					db.Create(&models.Publisher{Name: value}).Scan(&newPublisher)
+					db.Create(&models.Publisher{Name: value.(string)}).Scan(&newPublisher)
 					updates["publisher_id"] = newPublisher.Id
 				} else {
 					updates["publisher_id"] = publisherId
@@ -187,12 +190,10 @@ func UpdateArticle(w http.ResponseWriter, r *http.Request) {
 
 // DeleteArticle deletes an article from the database given the id
 func DeleteArticle(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
+	tokens := strings.Split(r.URL.String(), "/")
+	id := tokens[len(tokens) - 1]
 	db := store.GetConnection()
 	defer db.Close()
-
 	db.Delete(models.Article{}, fmt.Sprintf("id = %s", id))
 
 	json.NewEncoder(w).Encode(fmt.Sprintf("Article with the ID %s was deleted", id))

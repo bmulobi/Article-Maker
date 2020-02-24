@@ -8,6 +8,8 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 )
 
 // Server holds API host information
@@ -18,12 +20,22 @@ type Server struct {
 
 func init() {
 	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
+	path, patherror := os.Getwd()
+
+	if patherror != nil {
+		panic(fmt.Errorf("Fatal getting current directory: %s \n", patherror))
+	}
+	if strings.Contains(path, "tests") {
+		path = "../"
+	} else {
+		path = "."
+	}
+	viper.AddConfigPath(path)
 	viper.AutomaticEnv()
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+		panic(fmt.Errorf("Fatal error reading config file: %s \n", err))
 	}
 	viper.WatchConfig()
 

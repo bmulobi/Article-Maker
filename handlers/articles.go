@@ -138,7 +138,7 @@ func UpdateArticle(w http.ResponseWriter, r *http.Request) {
 
 	if article.Id == 0 {
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(fmt.Sprintf("The article with ID %s was not found", fieldsToUpdate["id"]))
+		json.NewEncoder(w).Encode(fmt.Sprintf("The article with ID %s was not found", strconv.Itoa(int(id))))
 		return
 	}
 	_, relations, columns := helpers.GetAllowedParams()

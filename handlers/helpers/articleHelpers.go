@@ -3,6 +3,7 @@ package helpers
 
 import (
 	"articlemaker/store"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -67,20 +68,20 @@ func GetRelationsIds(r *http.Request) (categoryId int, publisherId int, notFound
 // GetTimeFromString converts a string to a time.Time instance
 func GetTimeFromString(dateString string) (date time.Time, malformed bool) {
 	tokens := strings.Split(dateString, " ")
-
 	if len(tokens) < 2 {
 		return time.Time{}, true
 	}
 
 	dateTokens := strings.Split(tokens[0], "-")
 	timeTokens := strings.Split(tokens[1], ":")
-
 	if len(dateTokens) < 3 || len(timeTokens) < 3 {
 		return time.Time{}, true
 	}
 
 	dateString = strings.Replace(dateString, " ", "T", 1)
-	dateString += "+00:00" // todo get the timezone diff dynamically
+	offset := strings.Split(time.Now().String(), " ")[2]
+	offsetTokens := strings.SplitAfterN(offset, "", 4)
+	dateString += fmt.Sprintf("%s%s%s:%s", offsetTokens[0], offsetTokens[1], offsetTokens[2], offsetTokens[3])
 	newTime, err := time.Parse(time.RFC3339, dateString)
 
 	if err != nil {

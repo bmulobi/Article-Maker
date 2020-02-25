@@ -1,4 +1,7 @@
 # Article Maker
+## A simple Go API
+
+> The ERD diagram can be seen at ERD.pdf in the root folder
 
 ## How to run the application
 

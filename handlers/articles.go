@@ -14,9 +14,10 @@ import (
 	"strings"
 )
 
+// TODO : add requests validation i.e field types, lengths and duplicate values for unique columns
+
 // CreateArticle creates a new article
 func CreateArticle(w http.ResponseWriter, r *http.Request) {
-	// todo : add request validation
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -29,9 +30,9 @@ func CreateArticle(w http.ResponseWriter, r *http.Request) {
 
 	db := store.GetConnection()
 	defer db.Close()
-
 	result := db.Set("gorm:association_autoupdate", false).Create(&article)
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(result)
 }
@@ -53,6 +54,7 @@ func GetArticle(w http.ResponseWriter, r *http.Request) {
 		result = article
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
 }
 
@@ -61,6 +63,8 @@ func GetArticle(w http.ResponseWriter, r *http.Request) {
 func GetArticles(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 	var articles []models.Article
+	notFoundMesage := map[string]string{"message": "No results for the given parameters"}
+	w.Header().Set("Content-Type", "application/json")
 	db := store.GetConnection()
 	defer db.Close()
 
@@ -70,7 +74,7 @@ func GetArticles(w http.ResponseWriter, r *http.Request) {
 
 		if notFound {
 			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode("No results for the given parameters")
+			json.NewEncoder(w).Encode(notFoundMesage)
 			return
 		}
 		if categoryId != 0 {
@@ -93,13 +97,13 @@ func GetArticles(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusNotFound)
 				response := fmt.Sprintf("%s is not a valid parameter", param)
 				response += fmt.Sprintf(" use one of : created_at published_at category publisher")
-				json.NewEncoder(w).Encode(response)
+				json.NewEncoder(w).Encode(map[string]string{"message": response})
 				return
 			}
 		}
 		if !strings.Contains(fmt.Sprintf("%s", db.QueryExpr()), "?") {
 			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode("No results for the given parameters")
+			json.NewEncoder(w).Encode(notFoundMesage)
 			return
 		}
 	}
@@ -107,7 +111,7 @@ func GetArticles(w http.ResponseWriter, r *http.Request) {
 	db.Find(&articles)
 	if len(articles) == 0 {
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode("No results for the given parameters")
+		json.NewEncoder(w).Encode(notFoundMesage)
 	} else {
 		json.NewEncoder(w).Encode(articles)
 	}
@@ -118,15 +122,16 @@ func GetArticles(w http.ResponseWriter, r *http.Request) {
 func UpdateArticle(w http.ResponseWriter, r *http.Request) {
 	var fieldsToUpdate map[string]interface{}
 	err := json.NewDecoder(r.Body).Decode(&fieldsToUpdate)
+	w.Header().Set("Content-Type", "application/json")
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode("Error processing the request")
+		json.NewEncoder(w).Encode(map[string]string{"message": "Error processing the request"})
 		return
 	}
 	if _, ok := fieldsToUpdate["id"]; !ok {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode("Enter the article ID")
+		json.NewEncoder(w).Encode(map[string]string{"message": "The article ID is missing"})
 		return
 	}
 	db := store.GetConnection()
@@ -194,13 +199,22 @@ func DeleteArticle(w http.ResponseWriter, r *http.Request) {
 	id := tokens[len(tokens)-1]
 	db := store.GetConnection()
 	defer db.Close()
-	db.Delete(models.Article{}, fmt.Sprintf("id = %s", id))
+	affected := db.Delete(models.Article{}, fmt.Sprintf("id = %s", id)).RowsAffected
+	message := ""
+	if affected == 0 {
+		message = fmt.Sprintf("Article with the ID %s was not found", id)
+		w.WriteHeader(http.StatusNotFound)
+	} else {
+		message = fmt.Sprintf("Article with the ID %s was deleted", id)
+	}
 
-	json.NewEncoder(w).Encode(fmt.Sprintf("Article with the ID %s was deleted", id))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": message})
 }
 
 // NotFound returns a 404 error message for any unknown path
 func NotFound(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotFound)
-	json.NewEncoder(w).Encode("Page Not Found")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Page Not Found"})
 }
